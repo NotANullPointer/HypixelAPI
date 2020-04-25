@@ -4,8 +4,10 @@ import com.bhonnso.hypixelapi.games.skyblock.profile.minions.Minion;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionType;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -28,7 +30,8 @@ public class APIUtils {
     private final UUID apiKey;
     private static final String BASE_URL = "https://api.hypixel.net/";
     public static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool();
-    private static CloseableHttpClient HTTP_CLIENT = HttpClients.createMinimal();
+
+    private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
 
     APIUtils(UUID apiKey) {
         this.apiKey = apiKey;
@@ -58,10 +61,13 @@ public class APIUtils {
         THREAD_POOL.submit(() -> {
             try {
                 CloseableHttpResponse response = HTTP_CLIENT.execute(new HttpGet(url.toString()));
-                JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity(), "UTF-8"));
+                HttpEntity content = response.getEntity();
+                JSONObject json = new JSONObject(EntityUtils.toString(content));
+                EntityUtils.consume(content);
                 response.close();
                 responseFuture.complete(json);
             } catch (IOException e) {
+                e.printStackTrace();
                 responseFuture.completeExceptionally(e);
             }
         });
