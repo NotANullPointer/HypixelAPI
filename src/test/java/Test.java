@@ -20,6 +20,14 @@ public class Test {
                 });
             });
         });
+        api.getGuildByName("Svea").whenComplete((guild, throwable) -> {
+            if (throwable != null) {
+                throwable.printStackTrace();
+            }
+            guild.getMembers().forEach(member -> {
+                System.out.println(member.getUuid() + " " + member.getRank());
+            });
+        });
     }
 
 }

@@ -28,7 +28,7 @@ public class APIUtils {
     private final UUID apiKey;
     private static final String BASE_URL = "https://api.hypixel.net/";
     public static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool();
-    private static CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
+    private static CloseableHttpClient HTTP_CLIENT = HttpClients.createMinimal();
 
     APIUtils(UUID apiKey) {
         this.apiKey = apiKey;

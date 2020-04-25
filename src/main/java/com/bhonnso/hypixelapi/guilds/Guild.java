@@ -1,10 +1,8 @@
 package com.bhonnso.hypixelapi.guilds;
 
 import com.bhonnso.hypixelapi.APIUtils;
-import com.bhonnso.hypixelapi.games.skyblock.bazaar.BazaarProduct;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,7 +20,6 @@ public class Guild extends com.bhonnso.hypixelapi.JSONObject {
     public Guild(JSONObject data) {
         super(data);
         data = data.getJSONObject("guild");
-        System.out.println(data);
         this.id = data.getString("_id");
         this.name = data.getString("name");
         this.tag = data.getString("tag");
