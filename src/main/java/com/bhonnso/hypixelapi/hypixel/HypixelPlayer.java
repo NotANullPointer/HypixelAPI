@@ -38,6 +38,10 @@ public class HypixelPlayer extends com.bhonnso.hypixelapi.JSONObject{
         return name;
     }
 
+    public String getDiscordTag() {
+        return discordTag;
+    }
+
     public String getUuid() {
         return uuid;
     }
