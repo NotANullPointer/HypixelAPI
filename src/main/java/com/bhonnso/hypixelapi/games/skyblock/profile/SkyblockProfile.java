@@ -1,8 +1,9 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile;
 
-import com.bhonnso.hypixelapi.APIUtils;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.Minion;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionType;
+import com.bhonnso.hypixelapi.games.skyblock.profile.skills.Skill;
+import com.bhonnso.hypixelapi.games.skyblock.profile.skills.SkillType;
 import com.bhonnso.hypixelapi.games.skyblock.profile.slayers.SlayerData;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -58,16 +59,38 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         });
     }
 
+    /**
+     *
+     * @return A list of this profile's profile members
+     */
     public List<ProfileMember> getProfileMembers() {
         return profileMembers;
     }
 
+    /**
+     *
+     * @param id The id of the profile member
+     * @return The profile member with the given id, null if there's no profile member with the id
+     */
     public ProfileMember getProfileMember(String id) {
         return profileMembers.stream().filter(profileMember -> profileMember.id.equalsIgnoreCase(id)).findFirst().orElse(null);
     }
 
+    /**
+     *
+     * @return A list of unlocked minions of this profile
+     */
     public List<Minion> getUnlockedMinions() {
         return minionList;
+    }
+
+    /**
+     *
+     * @param minionType The type of the minion
+     * @return The minion with the given type, null if there's no minion with the type
+     */
+    public Minion getUnlockedMinion(MinionType minionType) {
+        return minionList.stream().filter(minion -> minion.getMinionType() == minionType).findFirst().orElse(null);
     }
 
     public static class ProfileMember extends com.bhonnso.hypixelapi.JSONObject {
@@ -75,6 +98,7 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         private String id;
         private SlayerData slayerData;
         private JSONArray minionData;
+        private List<Skill> skills;
 
         public ProfileMember(JSONObject data, String id) {
             super(data);
@@ -85,6 +109,17 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
             this.minionData = data.has("crafted_generators") ?
                     data.getJSONArray("crafted_generators") :
                     new JSONArray("[]");
+            this.skills = new ArrayList<>();
+            Arrays.stream(SkillType.values()).forEach(skillType -> registerSkill(skillType, data));
+        }
+
+        private void registerSkill(SkillType skillType, JSONObject data) {
+            String key = String.format("experience_skill_%s", skillType.name().toLowerCase());
+            int xp = 0;
+            if(data.has(key)) {
+                xp = (int) Math.floor(data.getDouble(key));
+            }
+            skills.add(new Skill(xp, skillType));
         }
 
         private List<String> getMinionData() {
@@ -95,10 +130,35 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
             return minionData;
         }
 
+        /**
+         *
+         * @return A list of this profile member's skills
+         */
+        public List<Skill> getSkills() {
+            return skills;
+        }
+
+        /**
+         *
+         * @param skillType The type of the skill
+         * @return The skill with the given type, null if there's no skill with the type
+         */
+        public Skill getSkill(SkillType skillType) {
+            return skills.stream().filter(skill -> skill.getSkillType() == skillType).findFirst().orElse(null);
+        }
+
+        /**
+         *
+         * @return The id of this profile member
+         */
         public String getId() {
             return id;
         }
 
+        /**
+         *
+         * @return The slayer data of this profile member
+         */
         public SlayerData getSlayerData() {
             return slayerData;
         }

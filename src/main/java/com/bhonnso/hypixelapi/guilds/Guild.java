@@ -3,9 +3,7 @@ package com.bhonnso.hypixelapi.guilds;
 import com.bhonnso.hypixelapi.APIUtils;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,24 +48,20 @@ public class Guild extends com.bhonnso.hypixelapi.JSONObject {
 
     public static class GuildMember extends com.bhonnso.hypixelapi.JSONObject {
 
-        private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
         private String uuid;
         private String rank;
-        private HashMap<Date, Integer> expHistory;
+        private HashMap<LocalDate, Integer> expHistory;
 
         public GuildMember(JSONObject data) {
             super(data);
             this.uuid = data.getString("uuid");
             this.rank = data.getString("rank");
-            this.expHistory = new HashMap<>(data.getJSONObject("expHistory").toMap().entrySet().stream().map(e -> {
-                try {
-                    return new AbstractMap.SimpleEntry<>(DATE_FORMAT.parse(e.getKey()), e.getValue().toString());
-                } catch (ParseException parseException) {
-                    parseException.printStackTrace();
-                    return new AbstractMap.SimpleEntry<Date, String>(null, "");
-                }
-            }).collect(Collectors.toMap(e -> (Date)e.getKey(), e -> Integer.valueOf(e.getValue()))));
+            this.expHistory = new HashMap<>(data.getJSONObject("expHistory")
+                    .toMap()
+                    .entrySet()
+                    .stream()
+                    .map(e -> new AbstractMap.SimpleEntry<>(LocalDate.parse(e.getKey()), Integer.valueOf(e.getValue().toString())))
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
         }
 
         public String getUuid() {
@@ -78,7 +72,7 @@ public class Guild extends com.bhonnso.hypixelapi.JSONObject {
             return rank;
         }
 
-        public HashMap<Date, Integer> getExpHistory() {
+        public HashMap<LocalDate, Integer> getExpHistory() {
             return expHistory;
         }
 
