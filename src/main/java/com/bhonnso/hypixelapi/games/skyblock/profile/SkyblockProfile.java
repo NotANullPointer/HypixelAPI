@@ -99,6 +99,7 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         private SlayerData slayerData;
         private JSONArray minionData;
         private List<Skill> skills;
+        private boolean skillsApi = true;
 
         public ProfileMember(JSONObject data, String id) {
             super(data);
@@ -110,7 +111,11 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
                     data.getJSONArray("crafted_generators") :
                     new JSONArray("[]");
             this.skills = new ArrayList<>();
-            Arrays.stream(SkillType.values()).forEach(skillType -> registerSkill(skillType, data));
+            if(data.has("experience_skill_combat")) {
+                Arrays.stream(SkillType.values()).forEach(skillType -> registerSkill(skillType, data));
+            } else {
+                skillsApi = false;
+            }
         }
 
         private void registerSkill(SkillType skillType, JSONObject data) {
@@ -128,6 +133,10 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
                 minionData.add((String)minion);
             });
             return minionData;
+        }
+
+        public boolean isSkillsAPIEnabled() {
+            return skillsApi;
         }
 
         /**

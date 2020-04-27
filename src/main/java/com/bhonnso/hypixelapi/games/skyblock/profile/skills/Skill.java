@@ -14,6 +14,14 @@ public class Skill {
                 SkillLevelSpecial.getLevelFromXp(xp);
     }
 
+    public Skill(int level, SkillType skillType, boolean useless) {
+        this.skillType = skillType;
+        this.skillLevel = skillType.getLevelType() == SkillType.LevelType.NORMAL ?
+                SkillLevelNormal.getLevel(level) :
+                SkillLevelSpecial.getLevel(level);
+        this.xp = skillLevel.getCumulativeXp();
+    }
+
     public int getXp() {
         return xp;
     }
