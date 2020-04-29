@@ -1,6 +1,9 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile;
 
+import com.bhonnso.hypixelapi.APIUtils;
+import com.bhonnso.hypixelapi.games.skyblock.profile.collections.CollectionType;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.Minion;
+import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionTier;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionType;
 import com.bhonnso.hypixelapi.games.skyblock.profile.skills.Skill;
 import com.bhonnso.hypixelapi.games.skyblock.profile.skills.SkillType;
@@ -9,16 +12,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
 
     private String profileId;
     private List<ProfileMember> profileMembers = new ArrayList<>();
     private List<Minion> minionList = new ArrayList<>();
-
-    private static final Pattern MINION_PATTERN = Pattern.compile("(\\w+)_([0-1]?[0-9])");
+    private List<com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection> collectionList = new ArrayList<>();
 
     public SkyblockProfile(JSONObject data) {
         super(data);
@@ -27,36 +28,47 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         JSONObject profilesData = data.getJSONObject("members");
         profilesData.keySet().forEach(k ->
             profileMembers.add(new ProfileMember(profilesData.getJSONObject(k), k)));
-        loadMinions();
     }
 
-    private void loadMinions() {
-        HashMap<String, List<Integer>> tempMap = new HashMap<>();
-        profileMembers.stream()
+    public SkyblockProfile loadMinions() {
+        minionList = profileMembers.parallelStream()
                 .map(ProfileMember::getMinionData)
-                .flatMap(Collection::stream)
-                .map(minion -> {
-                    Matcher matcher = MINION_PATTERN.matcher(minion);
-                    if(matcher.find()) {
-                        String minionType = matcher.group(1);
-                        int tier = Integer.parseInt(matcher.group(2));
-                        return new AbstractMap.SimpleEntry<>(minionType, tier);
-                    }
-                    return null;
-                }).forEach(entry -> {
-            if(tempMap.containsKey(entry.getKey())) {
-                List<Integer> tiers = tempMap.get(entry.getKey());
-                tiers.add(entry.getValue());
-                tempMap.replace(entry.getKey(), tiers);
-            } else {
-                tempMap.put(entry.getKey(), new ArrayList<>(Collections.singletonList(entry.getValue())));
-            }
-        });
-        tempMap.forEach((key, value) -> {
-            Minion minion = new Minion(MinionType.getByName(key));
-            value.forEach(minion::unlockTier);
-            minionList.add(minion);
-        });
+                .flatMap(Collection::parallelStream)
+                .map(APIUtils::toMinionData)
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
+                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toList())))
+                .entrySet()
+                .parallelStream()
+                .map(e -> new Minion(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+        return this;
+    }
+
+    public SkyblockProfile loadCollections() {
+        Map<CollectionType, Integer> values =
+                profileMembers.parallelStream()
+                .map(ProfileMember::getCollectionValues)
+                .flatMap(m -> m.entrySet().parallelStream())
+                .map(APIUtils::toCollectionValue)
+                .filter(e -> Objects.nonNull(e.getKey()))
+                .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
+                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.summingInt(e -> e))));
+        collectionList = profileMembers.parallelStream()
+                .map(ProfileMember::getCollectionTiersData)
+                .flatMap(Collection::parallelStream)
+                .distinct()
+                .map(APIUtils::toCollectionData)
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
+                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toList())))
+                .entrySet()
+                .parallelStream()
+                .map(e -> new com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection(
+                        e.getKey(), e.getValue(), values.get(e.getKey())
+                ))
+                .collect(Collectors.toList());
+        return this;
     }
 
     /**
@@ -93,11 +105,32 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         return minionList.stream().filter(minion -> minion.getMinionType() == minionType).findFirst().orElse(null);
     }
 
+    /**
+     *
+     * @return A list of unlocked collections of this profile
+     */
+    public List<com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection> getUnlockedCollections() {
+        return collectionList;
+    }
+
+    /**
+     *
+     * @param collectionType The type of the collection
+     * @return The collection with the given type, null if there's no collection with the type
+     */
+    public com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection getUnlockedMinion(CollectionType collectionType) {
+        return collectionList.stream().filter(collection -> collection.getCollectionType() == collectionType).findFirst().orElse(null);
+    }
+
+
+
     public static class ProfileMember extends com.bhonnso.hypixelapi.JSONObject {
 
         private String id;
         private SlayerData slayerData;
         private JSONArray minionData;
+        private JSONArray collectionData;
+        private JSONObject collectionValues;
         private List<Skill> skills;
         private boolean skillsApi = true;
 
@@ -110,6 +143,12 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
             this.minionData = data.has("crafted_generators") ?
                     data.getJSONArray("crafted_generators") :
                     new JSONArray("[]");
+            this.collectionData = data.has("unlocked_coll_tiers") ?
+                    data.getJSONArray("unlocked_coll_tiers") :
+                    new JSONArray("[]");
+            this.collectionValues = data.has("collection") ?
+                    data.getJSONObject("collection") :
+                    new JSONObject("{}");
             this.skills = new ArrayList<>();
             if(data.has("experience_skill_combat")) {
                 Arrays.stream(SkillType.values()).forEach(skillType -> registerSkill(skillType, data));
@@ -133,6 +172,22 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
                 minionData.add((String)minion);
             });
             return minionData;
+        }
+
+        private List<String> getCollectionTiersData() {
+            List<String> collectionData = new ArrayList<>();
+            this.collectionData.forEach(collection ->
+                collectionData.add((String)collection)
+            );
+            return collectionData;
+        }
+
+        private Map<String, Integer> getCollectionValues() {
+            Map<String, Integer> collectionValues = new HashMap<>();
+            this.collectionValues.keySet().forEach(k ->
+                    collectionValues.put(k, this.collectionValues.getInt(k))
+            );
+            return collectionValues;
         }
 
         public boolean isSkillsAPIEnabled() {

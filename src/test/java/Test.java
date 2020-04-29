@@ -1,29 +1,24 @@
 import com.bhonnso.hypixelapi.HypixelAPI;
 
-import java.time.LocalDate;
-
 public class Test {
 
     public static void main(String[] args) {
-        HypixelAPI api = HypixelAPI.getAPI(":eyes:");
-        api.getPlayerByName("Hanako_Kun").whenComplete((hypixelPlayer, throwable) -> {
-           if(throwable != null) {
-               throwable.printStackTrace();
-           }
-           String id = hypixelPlayer.getUuid();
-           api.getSkyblockAPI().getProfiles(hypixelPlayer.getSkyblockProfiles()).whenComplete((skyblockProfiles, throwable1) -> {
-               if(throwable1 != null) {
-                   throwable1.printStackTrace();
+        HypixelAPI api = HypixelAPI.getAPI("d9cc69c4-3e5a-47c1-8482-871366e0bd7d");
+        api.getSkyblockAPI().loadCollections().whenComplete((n, t) -> {
+            api.getPlayerByName("Hanako_Kun").whenComplete((hypixelPlayer, throwable) -> {
+               if(throwable != null) {
+                   throwable.printStackTrace();
                }
-               skyblockProfiles.forEach(skyblockProfile -> {
-                   skyblockProfile.getProfileMember(id).getSkills().forEach(skill ->
-                           System.out.println(String.format("%s: LV %d, %d/%d",
-                               skill.getSkillType().name(),
-                               skill.getSkillLevel().getLevel(),
-                               skill.getXp() - skill.getSkillLevel().getCumulativeXp(),
-                               skill.getSkillLevel().nextLevel().getXp())));
+               String id = hypixelPlayer.getUuid();
+               api.getSkyblockAPI().getProfiles(hypixelPlayer.getSkyblockProfiles()).whenComplete((skyblockProfiles, throwable1) -> {
+                   if(throwable1 != null) {
+                       throwable1.printStackTrace();
+                   }
+                   skyblockProfiles.get(2).loadMinions().loadCollections();
+                   skyblockProfiles.get(2).getUnlockedMinions().forEach(System.out::println);
+                   skyblockProfiles.get(2).getUnlockedCollections().forEach(System.out::println);
                });
-           });
+            });
         });
     }
 

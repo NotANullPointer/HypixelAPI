@@ -1,6 +1,8 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.skills;
 
 
+import com.sun.xml.internal.ws.util.StringUtils;
+
 import static com.bhonnso.hypixelapi.games.skyblock.profile.skills.SkillType.LevelType.*;
 
 public enum SkillType {
@@ -21,12 +23,16 @@ public enum SkillType {
     }
 
 
-    private LevelType levelType;
-    private boolean isCosmetic;
+    private final LevelType levelType;
+    private final boolean isCosmetic;
 
     SkillType(LevelType levelType, boolean isCosmetic) {
         this.levelType = levelType;
         this.isCosmetic = isCosmetic;
+    }
+
+    public String getDisplayName() {
+        return StringUtils.capitalize(name().toLowerCase());
     }
 
     public boolean isCosmetic() {

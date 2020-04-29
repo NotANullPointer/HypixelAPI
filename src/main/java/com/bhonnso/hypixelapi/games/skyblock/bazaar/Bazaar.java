@@ -2,25 +2,26 @@ package com.bhonnso.hypixelapi.games.skyblock.bazaar;
 
 import com.bhonnso.hypixelapi.APIUtils;
 import com.bhonnso.hypixelapi.games.SkyblockAPI;
+import com.google.common.cache.LoadingCache;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Bazaar {
 
     private ArrayList<String> items = new ArrayList<>();
     private final SkyblockAPI skyblockAPI;
 
+    private LoadingCache<String, HashMap<String, BazaarProduct>> itemsCache = APIUtils.createCache((s) -> this.getItemsInternal(), 1);
+
     public Bazaar(SkyblockAPI skyblockAPI) {
         this.skyblockAPI = skyblockAPI;
     }
 
+    @Deprecated
     public CompletableFuture<BazaarProduct> getItem(String name) {
         return skyblockAPI.getAPIUtils().get("skyblock/bazaar/product", "productId", name).handle((obj, t) -> {
             if(!APIUtils.isSuccessful(obj))
@@ -30,6 +31,7 @@ public class Bazaar {
         }).thenApply(BazaarProduct::new);
     }
 
+    @Deprecated
     public CompletableFuture<ArrayList<String>> loadItemList() {
         return skyblockAPI.getAPIUtils().get("skyblock/bazaar/products").whenComplete((JSONObject obj, Throwable t) -> {
             JSONArray jsonItems = obj.getJSONArray("productIds");
@@ -38,6 +40,10 @@ public class Bazaar {
     }
 
     public CompletableFuture<HashMap<String, BazaarProduct>> getItems() {
+        return APIUtils.completableFuture(() -> itemsCache.getUnchecked("0"));
+    }
+
+    private CompletableFuture<HashMap<String, BazaarProduct>> getItemsInternal() {
         return skyblockAPI.getAPIUtils().get("skyblock/bazaar").thenApply((jsonObject) -> {
             HashMap<String, BazaarProduct> ret = new HashMap<>();
             JSONObject products = jsonObject.getJSONObject("products");
@@ -50,6 +56,7 @@ public class Bazaar {
         });
     }
 
+    @Deprecated
     public ArrayList<String> getItemList() {
         if(items.isEmpty()) {
             loadItemList().join();

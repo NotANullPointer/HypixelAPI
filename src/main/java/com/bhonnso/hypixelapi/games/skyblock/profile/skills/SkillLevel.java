@@ -10,12 +10,20 @@ public interface SkillLevel {
 
     SkillLevel getMaxLevel();
 
-    boolean hasNextLevel();
+    default boolean isMaxLevel() {
+        return getMaxLevel() == this;
+    }
+
+    default boolean hasNextLevel() {
+        return !(this == getMaxLevel());
+    }
 
     SkillLevel nextLevel();
 
     boolean hasPreviousLevel();
 
     SkillLevel previousLevel();
+
+    String getDisplayName();
 
 }

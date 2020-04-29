@@ -1,7 +1,15 @@
 package com.bhonnso.hypixelapi;
 
+import com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection;
+import com.bhonnso.hypixelapi.games.skyblock.profile.collections.CollectionTier;
+import com.bhonnso.hypixelapi.games.skyblock.profile.collections.CollectionType;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.Minion;
+import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionTier;
 import com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionType;
+import com.bhonnso.hypixelapi.guilds.Guild;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -14,24 +22,46 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import sun.java2d.loops.TransformHelper;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class APIUtils {
 
     private final UUID apiKey;
     private static final String BASE_URL = "https://api.hypixel.net/";
-    public static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool();
+    public static final ScheduledExecutorService THREAD_POOL = Executors.newScheduledThreadPool(1000);
 
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
+
+    private final static TreeMap<Integer, String> map = new TreeMap<>();
+
+    static {
+
+        map.put(1000, "M");
+        map.put(900, "CM");
+        map.put(500, "D");
+        map.put(400, "CD");
+        map.put(100, "C");
+        map.put(90, "XC");
+        map.put(50, "L");
+        map.put(40, "XL");
+        map.put(10, "X");
+        map.put(9, "IX");
+        map.put(5, "V");
+        map.put(4, "IV");
+        map.put(1, "I");
+
+    }
+
 
     APIUtils(UUID apiKey) {
         this.apiKey = apiKey;
@@ -104,8 +134,71 @@ public class APIUtils {
         );
     }
 
+    public static <T, Y> LoadingCache<T, Y> createCache(Function<T, CompletableFuture<Y>> cacher, int size) {
+        return CacheBuilder.newBuilder()
+                .maximumSize(size)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build(new CacheLoader<T, Y>() {
+                    @Override
+                    public Y load(T t) {
+                        return cacher.apply(t).join();
+                    }
+                });
+    }
+
+
+    private static final Pattern MINION_COLLECTION_PATTERN = Pattern.compile("(.+)_([0-1]?[0-9])");
+
+    public static AbstractMap.SimpleEntry<MinionType, MinionTier> toMinionData(String minionString) {
+
+        Matcher matcher = MINION_COLLECTION_PATTERN.matcher(minionString);
+        if (matcher.find()) {
+            MinionType minionType = MinionType.getByName(matcher.group(1));
+            MinionTier minionTier = MinionTier.get(Integer.parseInt(matcher.group(2)));
+            return new AbstractMap.SimpleEntry<>(minionType, minionTier);
+        }
+        return null;
+    }
+
+    public static AbstractMap.SimpleEntry<CollectionType, Integer> toCollectionValue(Map.Entry<String, Integer> valueEntry) {
+        CollectionType collectionType = CollectionType.getByName(valueEntry.getKey());
+        return new AbstractMap.SimpleEntry<>(collectionType, valueEntry.getValue());
+    }
+
+    public static AbstractMap.SimpleEntry<CollectionType, CollectionTier> toCollectionData(String collectionString) {
+        CollectionType collectionType;
+        CollectionTier collectionTier;
+        int tier;
+        Matcher matcher = MINION_COLLECTION_PATTERN.matcher(collectionString);
+        if (matcher.find()) {
+            collectionType = CollectionType.getByName(matcher.group(1));
+            tier = Integer.parseInt(matcher.group(2));
+            collectionTier = null;
+            if (tier > 0) {
+                collectionTier = collectionType.getTiers().stream().filter(t -> t.getTier().getTier() == tier).findAny().orElse(null);
+
+            }
+            return new AbstractMap.SimpleEntry<>(collectionType, collectionTier);
+        }
+        return null;
+    }
+
+    public static <T> CompletableFuture<T> completableFuture(Supplier<T> method) {
+        return CompletableFuture.supplyAsync(method, THREAD_POOL);
+    }
+
     public static boolean listContainsMinionType(List<Minion> list, MinionType minionType) {
         return list.stream().map(Minion::getMinionType).anyMatch(minionType::equals);
     }
+
+    public  static String toRoman(int number) {
+        if(number == 0) return "0";
+        int l =  map.floorKey(number);
+        if (number == l) {
+            return map.get(number);
+        }
+        return map.get(l) + toRoman(number-l);
+    }
+
 
 }

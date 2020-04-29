@@ -1,5 +1,7 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.skills;
 
+import com.bhonnso.hypixelapi.APIUtils;
+
 import java.util.Arrays;
 
 public enum SkillLevelSpecial implements SkillLevel {
@@ -47,10 +49,6 @@ public enum SkillLevelSpecial implements SkillLevel {
         return xp;
     }
 
-    public boolean hasNextLevel() {
-        return !(this == getMaxLevel());
-    }
-
     public boolean hasPreviousLevel() {
         return level != 0;
     }
@@ -90,13 +88,16 @@ public enum SkillLevelSpecial implements SkillLevel {
     }
 
     public SkillLevelSpecial getMaxLevel() {
-        SkillLevelSpecial[] values = values();
-        return values[values.length-1];
+        return LV_24;
     }
 
     private void setLevel() {
         this.level = levelBase;
         levelBase += 1;
+    }
+
+    public String getDisplayName() {
+        return APIUtils.toRoman(level);
     }
 
 }

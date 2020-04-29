@@ -1,37 +1,43 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.minions;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Minion {
 
-    private boolean[] tiers = new boolean[11];
     private MinionType minionType;
+    private List<MinionTier> unlocked;
 
-    public Minion(MinionType minionType) {
+    public Minion(MinionType minionType, List<MinionTier> unlocked) {
         this.minionType = minionType;
+        this.unlocked = unlocked;
+        unlocked.sort(Comparator.comparingInt(MinionTier::getTier));
     }
 
     public MinionType getMinionType() {
         return minionType;
     }
 
-    /**
-     * @param tier Tier 1-11
-     */
-    public void unlockTier(int tier) {
-       this.tiers[tier-1] = true;
+    public List<MinionTier> getUnlockedTiers() {
+        return unlocked;
     }
 
-    /**
-     * @param tier Tier 1-11
-     */
-    public boolean isUnlocked(int tier) {
-        return this.tiers[tier-1];
+    public List<MinionTier> getLockedTiers() {
+        return Arrays.stream(MinionTier.values())
+                .filter(tier -> !isUnlocked(tier))
+                .sorted(Comparator.comparingInt(MinionTier::getTier))
+                .collect(Collectors.toList());
+    }
+
+    public boolean isUnlocked(MinionTier minionTier) {
+        return this.unlocked.contains(minionTier);
     }
 
     @Override
     public String toString() {
-        return String.format("{%s, %b %b %b %b %b %b %b %b %b %b %b}", minionType.name(),
-                tiers[0], tiers[1], tiers[2], tiers[3], tiers[4],
-                tiers[5], tiers[6], tiers[7], tiers[8], tiers[9], tiers[10]);
+        return String.format("%s %s", minionType.getDisplayName(), unlocked.toString());
     }
 
     @Override

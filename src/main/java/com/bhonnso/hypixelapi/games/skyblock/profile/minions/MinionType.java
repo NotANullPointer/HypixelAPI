@@ -1,68 +1,72 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.minions;
 
+import com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category;
+
 import java.util.Arrays;
 
-import static com.bhonnso.hypixelapi.games.skyblock.profile.minions.MinionType.Category.*;
+import static com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category.*;
 
 public enum MinionType {
 
-    COBBLESTONE(MINING),
-    OBSIDIAN(MINING),
-    GLOWSTONE(MINING),
-    GRAVEL(MINING),
-    SAND(MINING),
-    CLAY(MINING),
-    ICE(MINING),
-    SNOW(MINING),
-    COAL(MINING),
-    IRON(MINING),
-    GOLD(MINING),
-    DIAMOND(MINING),
-    LAPIS(MINING),
-    REDSTONE(MINING),
-    EMERALD(MINING),
-    QUARTZ(MINING),
-    ENDER_STONE(MINING),
-    WHEAT(FARMING),
-    MELON(FARMING),
-    PUMPKIN(FARMING),
-    CARROT(FARMING),
-    POTATO(FARMING),
-    MUSHROOM(FARMING),
-    CACTUS(FARMING),
-    COCOA(FARMING),
-    SUGAR_CANE(FARMING),
-    NETHER_WARTS(FARMING),
-    FLOWER(FARMING),
-    FISHING(Category.FISHING),
-    ZOMBIE(COMBAT),
-    REVENANT(COMBAT),
-    SKELETON(COMBAT),
-    CREEPER(COMBAT),
-    SPIDER(COMBAT),
-    TARANTULA(COMBAT),
-    CAVESPIDER(COMBAT),
-    BLAZE(COMBAT),
-    MAGMA_CUBE(COMBAT),
-    ENDERMAN(COMBAT),
-    GHAST(COMBAT),
-    SLIME(COMBAT),
-    COW(FARMING),
-    PIG(FARMING),
-    CHICKEN(FARMING),
-    SHEEP(FARMING),
-    RABBIT(FARMING),
-    OAK(FARMING),
-    BIRCH(FARMING),
-    SPRUCE(FARMING),
-    DARK_OAK(FARMING),
-    ACACIA(FARMING),
-    JUNGLE(FARMING);
+    COBBLESTONE(MINING, "Cobblestone"),
+    OBSIDIAN(MINING, "Obsidian"),
+    GLOWSTONE(MINING, "Glowstone"),
+    GRAVEL(MINING, "Gravel"),
+    SAND(MINING, "Sand"),
+    CLAY(MINING, "Clay"),
+    ICE(MINING, "Ice"),
+    SNOW(MINING, "Snow"),
+    COAL(MINING, "Coal"),
+    IRON(MINING, "Iron"),
+    GOLD(MINING, "Gold"),
+    DIAMOND(MINING, "Diamond"),
+    LAPIS(MINING, "Lapis"),
+    REDSTONE(MINING, "Redstone"),
+    EMERALD(MINING, "Emerald"),
+    QUARTZ(MINING, "Quartz"),
+    ENDER_STONE(MINING, "End Stone"),
+    WHEAT(FARMING, "Wheat"),
+    MELON(FARMING, "Melon"),
+    PUMPKIN(FARMING, "Pumpkin"),
+    CARROT(FARMING, "Carrot"),
+    POTATO(FARMING, "Potato"),
+    MUSHROOM(FARMING, "Mushroom"),
+    CACTUS(FARMING, "Cactus"),
+    COCOA(FARMING, "Cocoa Beans"),
+    SUGAR_CANE(FARMING, "Sugar Cane"),
+    NETHER_WARTS(FARMING, "Nether Wart"),
+    FLOWER(FARMING, "Flower"),
+    FISHING(Category.FISHING, "Fishing"),
+    ZOMBIE(COMBAT, "Zombie"),
+    REVENANT(COMBAT, "Revenant"),
+    SKELETON(COMBAT, "Skeleton"),
+    CREEPER(COMBAT, "Creeper"),
+    SPIDER(COMBAT, "Spider"),
+    TARANTULA(COMBAT, "Tarantula"),
+    CAVESPIDER(COMBAT, "Cave Spider"),
+    BLAZE(COMBAT, "Blaze"),
+    MAGMA_CUBE(COMBAT, "Magma Cube"),
+    ENDERMAN(COMBAT, "Enderman"),
+    GHAST(COMBAT, "Ghast"),
+    SLIME(COMBAT, "Slime"),
+    COW(FARMING, "Cow"),
+    PIG(FARMING, "Pig"),
+    CHICKEN(FARMING, "Chicken"),
+    SHEEP(FARMING, "Sheep"),
+    RABBIT(FARMING, "Rabbit"),
+    OAK(FORAGING, "Oak"),
+    BIRCH(FORAGING, "Birch"),
+    SPRUCE(FORAGING, "Spruce"),
+    DARK_OAK(FORAGING, "Dark Oak"),
+    ACACIA(FORAGING, "Acacia"),
+    JUNGLE(FORAGING, "Jungle");
 
-    private Category category;
+    private final Category category;
+    private final String name;
 
-    MinionType(Category category) {
+    MinionType(Category category, String name) {
         this.category = category;
+        this.name = name;
     }
 
     public Category getCategory() {
@@ -73,11 +77,8 @@ public enum MinionType {
         return Arrays.stream(values()).filter(minionType -> minionType.name().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
-    public enum Category {
-        MINING,
-        FARMING,
-        COMBAT,
-        FISHING;
+    public String getDisplayName() {
+        return String.format("%s Minion", name);
     }
 
 }
