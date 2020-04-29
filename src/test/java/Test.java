@@ -3,7 +3,7 @@ import com.bhonnso.hypixelapi.HypixelAPI;
 public class Test {
 
     public static void main(String[] args) {
-        HypixelAPI api = HypixelAPI.getAPI("d9cc69c4-3e5a-47c1-8482-871366e0bd7d");
+        HypixelAPI api = HypixelAPI.getAPI("//");
         api.getSkyblockAPI().loadCollections().whenComplete((n, t) -> {
             api.getPlayerByName("Hanako_Kun").whenComplete((hypixelPlayer, throwable) -> {
                if(throwable != null) {
