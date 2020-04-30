@@ -11,12 +11,21 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
     private final Tier tier;
     private final int required;
     private final List<String> unlocks;
+    private CollectionType collectionType;
 
     public CollectionTier(JSONObject data) {
         super(data);
         this.tier = Tier.get(data.getInt("tier"));
         this.required = data.getInt("amountRequired");
         this.unlocks = data.getJSONArray("unlocks").toList().stream().map(Object::toString).collect(Collectors.toList());
+    }
+
+    public CollectionType getCollectionType() {
+        return collectionType;
+    }
+
+    void setCollectionType(CollectionType collectionType) {
+        this.collectionType = collectionType;
     }
 
     public Tier getTier() {
@@ -32,7 +41,7 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
     }
 
     public String toString() {
-        return String.format("%s (%d) %s", tier.getDisplayName(), required, unlocks.toString());
+        return String.format("%s %s %s", collectionType.getDisplayName(), tier.getDisplayName(), unlocks.toString());
     }
 
     public enum Tier {

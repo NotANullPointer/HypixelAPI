@@ -98,6 +98,7 @@ public enum CollectionType {
     public void load(JSONObject data) {
         this.name = data.getString("name");
         APIUtils.extractJSONToArray(CollectionTier.class, data.getJSONArray("tiers"), tiers);
+        tiers.forEach(t -> t.setCollectionType(this));
     }
 
     @Override

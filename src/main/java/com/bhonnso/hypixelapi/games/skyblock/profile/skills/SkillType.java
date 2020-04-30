@@ -1,7 +1,6 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.skills;
 
-
-import com.sun.xml.internal.ws.util.StringUtils;
+import org.apache.commons.text.WordUtils;
 
 import static com.bhonnso.hypixelapi.games.skyblock.profile.skills.SkillType.LevelType.*;
 
@@ -32,7 +31,7 @@ public enum SkillType {
     }
 
     public String getDisplayName() {
-        return StringUtils.capitalize(name().toLowerCase());
+        return WordUtils.capitalize(name().toLowerCase());
     }
 
     public boolean isCosmetic() {

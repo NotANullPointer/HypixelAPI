@@ -1,5 +1,6 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.collections;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,9 @@ public class Collection {
         unlocked.sort(sorterCollectionTier);
     }
 
+    public static Collection VOID(CollectionType collectionType) {
+        return new Collection(collectionType, Collections.emptyList(), 0);
+    }
 
     public CollectionType getCollectionType() {
         return collectionType;
