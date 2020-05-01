@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import static com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category.*;
@@ -78,6 +79,7 @@ public enum CollectionType {
     private final Category category;
     private String name;
     private final ArrayList<CollectionTier> tiers = new ArrayList<>();
+    private static final Comparator<CollectionTier> sorterCollectionTier = Comparator.comparingInt(t -> t.getTier().getTier());
 
     CollectionType(Category category) {
         this.category = category;
@@ -99,6 +101,12 @@ public enum CollectionType {
         this.name = data.getString("name");
         APIUtils.extractJSONToArray(CollectionTier.class, data.getJSONArray("tiers"), tiers);
         tiers.forEach(t -> t.setCollectionType(this));
+    }
+
+    public CollectionTier highestTier() {
+        return tiers.stream()
+                .max(sorterCollectionTier)
+                .orElse(null);
     }
 
     @Override

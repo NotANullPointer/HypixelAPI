@@ -74,7 +74,7 @@ public enum MinionType {
     }
 
     public static MinionType getByName(String name) {
-        return Arrays.stream(values()).filter(minionType -> minionType.name().equalsIgnoreCase(name)).findFirst().orElse(null);
+        return Arrays.stream(values()).filter(minionType -> minionType.name.equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     public String getDisplayName() {

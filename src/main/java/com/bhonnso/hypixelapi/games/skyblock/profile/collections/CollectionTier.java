@@ -40,8 +40,22 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
         return unlocks;
     }
 
+    public CollectionTier next() {
+        if(this != collectionType.highestTier())
+            return collectionType.getTiers().get(this.getTier().getTier());
+        else
+            return null;
+    }
+
     public String toString() {
         return String.format("%s %s %s", collectionType.getDisplayName(), tier.getDisplayName(), unlocks.toString());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o.getClass() != getClass()) return false;
+        CollectionTier tier = (CollectionTier) o;
+        return tier.getCollectionType().equals(collectionType) && tier.getTier().equals(this.getTier());
     }
 
     public enum Tier {

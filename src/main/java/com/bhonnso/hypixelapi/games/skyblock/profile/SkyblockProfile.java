@@ -27,7 +27,7 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         this.profileId = data.getString("profile_id");
         JSONObject profilesData = data.getJSONObject("members");
         profilesData.keySet().forEach(k ->
-            profileMembers.add(new ProfileMember(profilesData.getJSONObject(k), k)));
+            profileMembers.add(new ProfileMember(profilesData.getJSONObject(k), k, this)));
     }
 
     public SkyblockProfile loadMinions() {
@@ -118,7 +118,7 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
      * @param collectionType The type of the collection
      * @return The collection with the given type, null if there's no collection with the type
      */
-    public com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection getUnlockedMinion(CollectionType collectionType) {
+    public com.bhonnso.hypixelapi.games.skyblock.profile.collections.Collection getUnlockedCollection(CollectionType collectionType) {
         return collectionList.stream().filter(collection -> collection.getCollectionType() == collectionType).findFirst().orElse(null);
     }
 
@@ -132,10 +132,12 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
         private JSONArray collectionData;
         private JSONObject collectionValues;
         private List<Skill> skills;
+        private SkyblockProfile parentProfile;
         private boolean skillsApi = true;
 
-        public ProfileMember(JSONObject data, String id) {
+        public ProfileMember(JSONObject data, String id, SkyblockProfile parentProfile) {
             super(data);
+            this.parentProfile = parentProfile;
             this.id = id;
             this.slayerData = data.has("slayer_bosses") ?
                 new SlayerData(data.getJSONObject("slayer_bosses")) :
@@ -155,6 +157,10 @@ public class SkyblockProfile extends com.bhonnso.hypixelapi.JSONObject {
             } else {
                 skillsApi = false;
             }
+        }
+
+        public SkyblockProfile getParentProfile() {
+            return parentProfile;
         }
 
         private void registerSkill(SkillType skillType, JSONObject data) {

@@ -1,29 +1,22 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.collections;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Collection {
 
-    private CollectionType collectionType;
-    private List<CollectionTier> unlocked;
-    private int items;
+    private final CollectionType collectionType;
+    private final List<CollectionTier> unlocked;
+    private final int items;
 
-    private static Comparator<CollectionTier> sorterCollectionTier = Comparator.comparingInt(t -> t.getTier().getTier());
-
-    private static Comparator<CollectionTier.Tier> sorterTier = Comparator.comparingInt(CollectionTier.Tier::getTier);
+    private static final Comparator<CollectionTier> sorterCollectionTier = Comparator.comparingInt(t -> t.getTier().getTier());
 
     public Collection(CollectionType collectionType, List<CollectionTier> unlocked, int items) {
         this.collectionType = collectionType;
         this.unlocked = unlocked;
         this.items = items;
         unlocked.sort(sorterCollectionTier);
-    }
-
-    public static Collection VOID(CollectionType collectionType) {
-        return new Collection(collectionType, Collections.emptyList(), 0);
     }
 
     public CollectionType getCollectionType() {
@@ -45,15 +38,19 @@ public class Collection {
         return this.unlocked.contains(collectionTier);
     }
 
-    public CollectionTier highestTier() {
+    public CollectionTier highestTierUnlocked() {
         return unlocked.stream()
                 .max(sorterCollectionTier)
                 .orElse(null);
     }
 
+    public int getItems() {
+        return items;
+    }
+
     @Override
     public String toString() {
-        CollectionTier highestTier = highestTier();
+        CollectionTier highestTier = highestTierUnlocked();
         return String.format("%s %s (%d)", collectionType.getDisplayName(),
                 highestTier == null ? "(Not unlocked)" : highestTier.getTier().getDisplayName(),
                 items);
