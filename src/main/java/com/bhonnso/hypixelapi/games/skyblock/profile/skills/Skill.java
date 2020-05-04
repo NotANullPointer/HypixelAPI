@@ -22,6 +22,10 @@ public class Skill {
         this.xp = skillLevel.getCumulativeXp();
     }
 
+    public String toString() {
+        return String.format("%s %s", getSkillType().getDisplayName(), getSkillLevel().getDisplayName());
+    }
+
     public int getXp() {
         return xp;
     }

@@ -13,7 +13,7 @@ public class Minion {
     public Minion(MinionType minionType, List<MinionTier> unlocked) {
         this.minionType = minionType;
         this.unlocked = unlocked;
-        unlocked.sort(Comparator.comparingInt(MinionTier::getTier));
+        unlocked.sort(Comparator.comparingInt(MinionTier::toInt));
     }
 
     public MinionType getMinionType() {
@@ -27,7 +27,7 @@ public class Minion {
     public List<MinionTier> getLockedTiers() {
         return Arrays.stream(MinionTier.values())
                 .filter(tier -> !isUnlocked(tier))
-                .sorted(Comparator.comparingInt(MinionTier::getTier))
+                .sorted(Comparator.comparingInt(MinionTier::toInt))
                 .collect(Collectors.toList());
     }
 

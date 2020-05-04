@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.CompletableFuture;
 
+import static com.bhonnso.hypixelapi.APIUtils.isSuccessful;
+
 public class Bazaar {
 
     private ArrayList<String> items = new ArrayList<>();
@@ -22,13 +24,13 @@ public class Bazaar {
     }
 
     @Deprecated
-    public CompletableFuture<BazaarProduct> getItem(String name) {
+    public CompletableFuture<Optional<BazaarProduct>> getItem(String name) {
         return skyblockAPI.getAPIUtils().get("skyblock/bazaar/product", "productId", name).handle((obj, t) -> {
-            if(!APIUtils.isSuccessful(obj))
-                throw new IllegalArgumentException("Item not found");
+            if(!isSuccessful(obj))
+                return null;
             else
-                return obj;
-        }).thenApply(BazaarProduct::new);
+                return new BazaarProduct(obj);
+        }).thenApply(Optional::ofNullable);
     }
 
     @Deprecated
@@ -47,11 +49,13 @@ public class Bazaar {
         return skyblockAPI.getAPIUtils().get("skyblock/bazaar").thenApply((jsonObject) -> {
             HashMap<String, BazaarProduct> ret = new HashMap<>();
             JSONObject products = jsonObject.getJSONObject("products");
-            products.keySet()
-                    .stream()
-                    .map(products::getJSONObject)
-                    .map(BazaarProduct::new)
-                    .forEach(product -> ret.put(product.getProductId(), product));
+            if(isSuccessful(products)) {
+                products.keySet()
+                        .stream()
+                        .map(products::getJSONObject)
+                        .map(BazaarProduct::new)
+                        .forEach(product -> ret.put(product.getProductId(), product));
+            }
             return ret;
         });
     }

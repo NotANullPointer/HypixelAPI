@@ -65,6 +65,8 @@ public class APIUtils {
 
     APIUtils(UUID apiKey) {
         this.apiKey = apiKey;
+        JSONObject check = get("key").join();
+        if(!isSuccessful(check)) throw new IllegalArgumentException("Invalid API Key");
     }
 
     /**
@@ -128,10 +130,21 @@ public class APIUtils {
         CompletableFuture<Void> allDoneFuture =
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         return allDoneFuture.thenApply(v ->
-                futures.stream().
-                        map(CompletableFuture::join).
-                        collect(Collectors.toList())
+                futures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList())
         );
+    }
+
+    public static <T> CompletableFuture<List<T>> combineOptionalFutures(List<CompletableFuture<Optional<T>>> futures) {
+        CompletableFuture<Void> allDoneFuture =
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        return allDoneFuture.thenApply(v ->
+                futures.stream()
+                        .map(CompletableFuture::join)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toList()));
     }
 
     public static <T, Y> LoadingCache<T, Y> createCache(Function<T, CompletableFuture<Y>> cacher, int size) {
@@ -153,15 +166,15 @@ public class APIUtils {
 
         Matcher matcher = MINION_COLLECTION_PATTERN.matcher(minionString);
         if (matcher.find()) {
-            MinionType minionType = MinionType.getByName(matcher.group(1));
-            MinionTier minionTier = MinionTier.get(Integer.parseInt(matcher.group(2)));
+            MinionType minionType = MinionType.fromName(matcher.group(1)).orElse(MinionType.COBBLESTONE);
+            MinionTier minionTier = MinionTier.fromInt(Integer.parseInt(matcher.group(2))).orElse(MinionTier.I);
             return new AbstractMap.SimpleEntry<>(minionType, minionTier);
         }
         return null;
     }
 
     public static AbstractMap.SimpleEntry<CollectionType, Integer> toCollectionValue(Map.Entry<String, Integer> valueEntry) {
-        CollectionType collectionType = CollectionType.getByName(valueEntry.getKey());
+        CollectionType collectionType = CollectionType.fromName(valueEntry.getKey()).orElse(CollectionType.COBBLESTONE);
         return new AbstractMap.SimpleEntry<>(collectionType, valueEntry.getValue());
     }
 
@@ -171,11 +184,11 @@ public class APIUtils {
         int tier;
         Matcher matcher = MINION_COLLECTION_PATTERN.matcher(collectionString);
         if (matcher.find()) {
-            collectionType = CollectionType.getByName(matcher.group(1));
+            collectionType = CollectionType.fromName(matcher.group(1)).orElse(CollectionType.COBBLESTONE);
             tier = Integer.parseInt(matcher.group(2));
             collectionTier = null;
             if (tier > 0) {
-                collectionTier = collectionType.getTiers().stream().filter(t -> t.getTier().getTier() == tier).findAny().orElse(null);
+                collectionTier = collectionType.getTiers().stream().filter(t -> t.getTier().toInt() == tier).findAny().orElse(null);
 
             }
             return new AbstractMap.SimpleEntry<>(collectionType, collectionTier);

@@ -1,10 +1,14 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.slayers;
 
+import com.google.common.base.Preconditions;
 import org.json.JSONObject;
 
-public class SlayerData extends com.bhonnso.hypixelapi.JSONObject {
+import java.util.Comparator;
+
+public class SlayerData extends com.bhonnso.hypixelapi.JSONObject implements Comparable<SlayerData> {
 
     private static final SlayerData EMPTY = new SlayerData();
+    private static final Comparator<SlayerData> COMPARATOR = Comparator.comparingInt(SlayerData::getTotalXp);
     private SlayerTypeData zombie;
     private SlayerTypeData spider;
     private SlayerTypeData wolf;
@@ -43,16 +47,23 @@ public class SlayerData extends com.bhonnso.hypixelapi.JSONObject {
         return zombie.xp + spider.xp + wolf.xp;
     }
 
-    public static class SlayerTypeData extends com.bhonnso.hypixelapi.JSONObject {
+    @Override
+    public int compareTo(SlayerData slayerData) {
+        Preconditions.checkNotNull(slayerData);
+        return COMPARATOR.compare(this, slayerData);
+    }
+
+    public static class SlayerTypeData extends com.bhonnso.hypixelapi.JSONObject implements Comparable<SlayerTypeData> {
 
         private static final SlayerTypeData EMPTY = new SlayerTypeData();
+        private static final Comparator<SlayerTypeData> COMPARATOR = Comparator.comparingInt(SlayerTypeData::getXp);
         private int xp = 0;
         private int t1 = 0;
         private int t2 = 0;
         private int t3 = 0;
         private int t4 = 0;
 
-        public SlayerTypeData(JSONObject data) {
+        SlayerTypeData(JSONObject data) {
             super(data);
             if(data.has("xp"))
                 this.xp = data.getInt("xp");
@@ -88,6 +99,12 @@ public class SlayerData extends com.bhonnso.hypixelapi.JSONObject {
 
         public int getT4Kills() {
             return t4;
+        }
+
+        @Override
+        public int compareTo(SlayerTypeData slayerTypeData) {
+            Preconditions.checkNotNull(slayerTypeData);
+            return COMPARATOR.compare(this, slayerTypeData);
         }
     }
 }

@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
@@ -15,7 +16,7 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
 
     public CollectionTier(JSONObject data) {
         super(data);
-        this.tier = Tier.get(data.getInt("tier"));
+        this.tier = Tier.fromInt(data.getInt("tier")).orElse(Tier.I);
         this.required = data.getInt("amountRequired");
         this.unlocks = data.getJSONArray("unlocks").toList().stream().map(Object::toString).collect(Collectors.toList());
     }
@@ -40,15 +41,15 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
         return unlocks;
     }
 
-    public CollectionTier next() {
+    public Optional<CollectionTier> next() {
         if(this != collectionType.highestTier())
-            return collectionType.getTiers().get(this.getTier().getTier());
+            return Optional.of(collectionType.getTiers().get(this.getTier().toInt()));
         else
-            return null;
+            return Optional.empty();
     }
 
     public String toString() {
-        return String.format("%s %s %s", collectionType.getDisplayName(), tier.getDisplayName(), unlocks.toString());
+        return String.format("%s %s %s", collectionType.getTypeName(), tier.getDisplayName(), unlocks.toString());
     }
 
     @Override
@@ -86,12 +87,12 @@ public class CollectionTier extends com.bhonnso.hypixelapi.JSONObject {
             return name();
         }
 
-        public int getTier() {
+        public int toInt() {
             return tier;
         }
 
-        public static Tier get(int tier) {
-            return Arrays.stream(values()).filter(t -> tier == t.tier).findAny().orElse(null);
+        public static Optional<Tier> fromInt(int tier) {
+            return Arrays.stream(values()).filter(t -> tier == t.tier).findAny();
         }
 
     }

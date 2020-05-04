@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category.*;
@@ -79,7 +80,7 @@ public enum CollectionType {
     private final Category category;
     private String name;
     private final ArrayList<CollectionTier> tiers = new ArrayList<>();
-    private static final Comparator<CollectionTier> sorterCollectionTier = Comparator.comparingInt(t -> t.getTier().getTier());
+    private static final Comparator<CollectionTier> sorterCollectionTier = Comparator.comparingInt(t -> t.getTier().toInt());
 
     CollectionType(Category category) {
         this.category = category;
@@ -93,8 +94,12 @@ public enum CollectionType {
         return tiers;
     }
 
-    public String getDisplayName() {
+    public String getTypeName() {
         return name;
+    }
+
+    public String getDisplayName() {
+        return String.format("%s Collection", getTypeName());
     }
 
     public void load(JSONObject data) {
@@ -114,13 +119,16 @@ public enum CollectionType {
         return name().replace("__", ":");
     }
 
-    public static CollectionType getByName(String name) {
+    public static Optional<CollectionType> fromName(String name) {
         return Arrays.stream(values())
-                .filter(cT -> cT.toString().equalsIgnoreCase(name))
-                .findAny().orElse(null);
+                .filter(cT ->
+                        cT.toString().equalsIgnoreCase(name) ||
+                        cT.getDisplayName().equalsIgnoreCase(name) ||
+                        cT.getTypeName().equalsIgnoreCase(name))
+                .findAny();
     }
 
-    public static void loadCollections(JSONObject data) {
+    public static void loadCollectionTypesData(JSONObject data) {
         Arrays.stream(values())
                 .collect(Collectors.groupingBy(CollectionType::getCategory))
                 .forEach((category, collections) -> {

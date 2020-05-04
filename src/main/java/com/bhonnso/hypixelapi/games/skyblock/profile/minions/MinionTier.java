@@ -1,6 +1,7 @@
 package com.bhonnso.hypixelapi.games.skyblock.profile.minions;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum MinionTier {
 
@@ -22,7 +23,7 @@ public enum MinionTier {
         this.tier = tier;
     }
 
-    public int getTier() {
+    public int toInt() {
         return tier;
     }
 
@@ -30,8 +31,8 @@ public enum MinionTier {
         return name();
     }
 
-    public static MinionTier get(int tier) {
-        return Arrays.stream(values()).filter(minionTier -> minionTier.tier == tier).findAny().orElse(null);
+    public static Optional<MinionTier> fromInt(int tier) {
+        return Arrays.stream(values()).filter(minionTier -> minionTier.tier == tier).findAny();
     }
 
 }

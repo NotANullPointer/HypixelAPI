@@ -3,6 +3,7 @@ package com.bhonnso.hypixelapi.games.skyblock.profile.minions;
 import com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static com.bhonnso.hypixelapi.games.skyblock.profile.collections.Category.*;
 
@@ -73,12 +74,21 @@ public enum MinionType {
         return category;
     }
 
-    public static MinionType getByName(String name) {
-        return Arrays.stream(values()).filter(minionType -> minionType.name.equalsIgnoreCase(name)).findFirst().orElse(null);
+    public static Optional<MinionType> fromName(String name) {
+        return Arrays.stream(values())
+                .filter(minionType ->
+                        minionType.getTypeName().equalsIgnoreCase(name) ||
+                        minionType.getDisplayName().equalsIgnoreCase(name) ||
+                        minionType.name().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    public String getTypeName() {
+        return name;
     }
 
     public String getDisplayName() {
-        return String.format("%s Minion", name);
+        return String.format("%s Minion", getTypeName());
     }
 
 }
